@@ -1,30 +1,42 @@
-from fastapi import FastAPI
-from fastapi.responses import JSONResponse
-import util
 import uvicorn
+from fastapi import FastAPI
+import utils
+from utils import House
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
-@app.get("/")
-async def root():
-    return 100
-
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://127.0.0.1:5500"],  # Adjust this to your frontend origin
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get('/get_location_names')
-async def get_location_names():
-    return "asdfasdf"
+def get_location_names():
+    utils.load_saved_artifacts()
+    response = {
+        'locations' : utils.get_location_names()
+    }
+    return response
 
-"""
 @app.post('/predict_home_price')
-async def predict_home_price():
-    total_sqft = float(request.total_sqft)
-    location = float(request.location)
-    bhk = float(request.bhk)
-    bath = float(request.bath)
-"""
+def predict_home_price(data:House):
+    total_sqft = data.total_sqft
+    location = data.location
+    bhk = data.bhk
+    bath = data.bath
+    response = {
+        'estimated_price' : utils.get_estimated_price(location, total_sqft, bhk, bath)
+    }
 
+    return response
+    
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="localhost", port=8000)
+    uvicorn.run(app, host="127.0.0.1", port=8000)
+    #print(get_location_names())
     
     
